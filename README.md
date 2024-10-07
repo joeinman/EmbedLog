@@ -15,8 +15,9 @@ EmbedLog is a lightweight hardware agnostic logging library designed for embedde
 #include <pico/stdlib.h>
 #include <stdio.h>
 
-int main() {
-    EmbedLog::EmbedLog logger(
+int main()
+{
+    EmbedLog::EmbedLog logge(
         []() { stdio_init_all(); },
         []() { stdio_deinit_all(); },
         [](const std::string& message) { printf("%s", message.c_str()); },
