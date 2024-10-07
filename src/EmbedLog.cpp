@@ -13,29 +13,26 @@ namespace EmbedLog
         closeFunc();
     }
 
-    void EmbedLog::log(LogLevel level, const std::string& message)
+    void EmbedLog::print(LogLevel level, const std::string& message)
     {
-        if (level >= logLevel)
+        std::string logLevelString;
+        switch (level)
         {
-            std::string logLevelString;
-            switch (level)
-            {
-            case LogLevel::INFO:
-                logLevelString = "INFO";
-                break;
-            case LogLevel::WARNING:
-                logLevelString = "WARNING";
-                break;
-            case LogLevel::ERROR:
-                logLevelString = "ERROR";
-                break;
-            case LogLevel::DEBUG:
-                logLevelString = "DEBUG";
-                break;
-            }
-
-            printFunc(getTimestamp() + " [" + logLevelString + "] " + message);
+        case LogLevel::INFO:
+            logLevelString = "INFO";
+            break;
+        case LogLevel::WARNING:
+            logLevelString = "WARNING";
+            break;
+        case LogLevel::ERROR:
+            logLevelString = "ERROR";
+            break;
+        case LogLevel::DEBUG:
+            logLevelString = "DEBUG";
+            break;
         }
+
+        printFunc(getTimestamp() + " [" + logLevelString + "] " + message);
     }
 
     void EmbedLog::setLogLevel(LogLevel level)

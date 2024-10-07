@@ -1,5 +1,6 @@
 #include <functional>
 #include <string>
+#include <sstream>
 
 namespace EmbedLog
 {
@@ -16,8 +17,20 @@ namespace EmbedLog
         EmbedLog(OpenFunction openFunc, CloseFunction closeFunc, PrintFunction printFunc, MicrosecondFunction microsecondFunc, LogLevel logLevel = LogLevel::INFO);
         ~EmbedLog();
 
-        void log(LogLevel level, const std::string& message);
         void setLogLevel(LogLevel level);
+
+        template <typename T, typename... Types>
+        void log(LogLevel level, T var1, Types... var2)
+        {
+            if (level >= logLevel)
+            {
+                std::stringstream ss;
+                ss << var1;
+                (ss << ... << var2);
+                ss << "\n";
+                print(level, ss.str());
+            }
+        }
 
     private:
         OpenFunction openFunc;
@@ -26,6 +39,7 @@ namespace EmbedLog
         MicrosecondFunction microsecondFunc;
         LogLevel logLevel;
 
+        void print(LogLevel level, const std::string& message);
         std::string getTimestamp();
     };
 }
