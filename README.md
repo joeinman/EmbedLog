@@ -1,5 +1,7 @@
 # EmbedLog
 
+![CMake](https://github.com/joeinman/EmbedLog/actions/workflows/cmake.yml/badge.svg)
+
 EmbedLog is a lightweight hardware agnostic logging library designed for embedded systems.
 
 ## Features:
