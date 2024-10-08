@@ -30,6 +30,7 @@
 #include "EmbedLog/EmbedLog.hpp"
 
 #include <iomanip>
+
 namespace EmbedLog
 {
 

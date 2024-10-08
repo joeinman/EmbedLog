@@ -57,7 +57,7 @@ namespace EmbedLog
      * @brief A minimal logging library designed for embedded systems.
      *
      * EmbedLog provides functionality to log messages at various levels of severity 
-     * (INFO, WARNING, ERROR, DEBUG, None). It supports user-defined functions for opening 
+     * (INFO, WARNING, ERROR, DEBUG, NONE). It supports user-defined functions for opening 
      * and closing the log, printing messages, and fetching timestamps in microseconds.
      */
     class EmbedLog
@@ -167,10 +167,10 @@ namespace EmbedLog
         }
 
     private:
-        OpenFunction openFunc;                // Function for opening the log.
-        CloseFunction closeFunc;              // Function for closing the log.
-        PrintFunction printFunc;              // Function for printing log messages.
-        MicrosecondFunction microsecondFunc;  // Function for getting microsecond timestamps.
+        OpenFunction openFunc;                        // Function for opening the log.
+        CloseFunction closeFunc;                      // Function for closing the log.
+        PrintFunction printFunc;                      // Function for printing log messages.
+        MicrosecondFunction microsecondFunc;          // Function for getting microsecond timestamps.
 
         ThrottleMap throttleMap;              // Map of throttle IDs to last message times.
         LogLevel logLevel = INFO;             // Current log level.
