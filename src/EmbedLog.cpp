@@ -25,14 +25,15 @@ namespace EmbedLog
 
     bool EmbedLog::open()
     {
-        isOpen = true;
-        return openFunc();
+        isOpen = openFunc();
+        return isOpen;
     }
 
     bool EmbedLog::close()
     {
-        isOpen = false;
-        return closeFunc();
+        bool result = closeFunc();
+        isOpen = !result;
+        return result;
     }
 
     void EmbedLog::log(LogLevel level, const std::string& message)
