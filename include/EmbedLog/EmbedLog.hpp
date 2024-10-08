@@ -36,6 +36,7 @@
 #include <cstdint>
 
 #define EMBDLID EmbedLog::unique_id(__FILE__, __LINE__)
+
 namespace EmbedLog
 {
     // Function Types for Logging
@@ -70,17 +71,17 @@ namespace EmbedLog
          * @param printFunc Function to print log messages.
          * @param microsecondFunc Function to retrieve the current time in microseconds.
          * @param name Optional: A name for the log. Defaults to an empty string.
-         * @param logLevel Optional: The initial log level. Defaults to INFO.
+         * @param format The desired format for the log messages. Defaults to "[%D:%H:%M:%S.%U %N %L] %T".
          *
          * @note It is important to provide valid open, close, and print functions 
          * to enable proper operation of the log system.
          */
-        EmbedLog(OpenFunction openFunc,
-                 CloseFunction closeFunc,
-                 PrintFunction printFunc,
-                 MicrosecondFunction microsecondFunc,
-                 std::string name = " ",
-                 LogLevel logLevel = LogLevel::INFO);
+        EmbedLog(OpenFunction openFunc, 
+                 CloseFunction closeFunc, 
+                 PrintFunction printFunc, 
+                 MicrosecondFunction microsecondFunc, 
+                 std::string name = "", 
+                 std::string format = "[%D:%H:%M:%S.%U %N %L] %T");
 
         /**
          * @brief Destroys the EmbedLog object.
@@ -134,7 +135,6 @@ namespace EmbedLog
                 std::stringstream ss;
                 ss << var1;
                 (ss << ... << var2); // Variadic argument expansion.
-                ss << "\n";
                 print(level, ss.str());
             }
         }
@@ -172,10 +172,11 @@ namespace EmbedLog
         PrintFunction printFunc;              // Function for printing log messages.
         MicrosecondFunction microsecondFunc;  // Function for getting microsecond timestamps.
 
-        ThrottleMap throttleMap;              // Map of throttle IDs to last log times.
+        ThrottleMap throttleMap;              // Map of throttle IDs to last message times.
+        LogLevel logLevel = INFO;             // Current log level.
         bool isOpen = false;                  // Tracks whether the log is currently open.
+        std::string format;                   // Format for the timestamp.
         std::string name;                     // Optional log name.
-        LogLevel logLevel;                    // Current log level.
 
         /**
          * @brief Prints a message at a specified log level.
@@ -189,10 +190,11 @@ namespace EmbedLog
         void print(LogLevel level, const std::string& message);
 
         /**
-         * @brief Retrieves the current timestamp as a formatted string.
+         * @brief Gets a string representation of the log level.
          *
-         * @return A string representing the timestamp in microseconds.
+         * @param level The log level to convert.
+         * @return A string representation of the log level.
          */
-        std::string getTimestamp();
+        std::string getLogLevelString(LogLevel level);
     };
 }

@@ -29,6 +29,7 @@
 
 #include "EmbedLog/EmbedLog.hpp"
 
+#include <iomanip>
 namespace EmbedLog
 {
 
@@ -41,15 +42,14 @@ namespace EmbedLog
                        PrintFunction printFunc,
                        MicrosecondFunction microsecondFunc,
                        std::string name,
-                       LogLevel logLevel)
+                       std::string format)
         : openFunc(openFunc),
           closeFunc(closeFunc),
           printFunc(printFunc),
           microsecondFunc(microsecondFunc),
-          logLevel(logLevel)
+          name(name),
+          format(format)
     {
-        if (name != " ")
-            this->name = " " + name + " ";
     }
 
     EmbedLog::~EmbedLog()
@@ -74,24 +74,59 @@ namespace EmbedLog
 
     void EmbedLog::print(LogLevel level, const std::string& message)
     {
-        std::string logLevelString;
-        switch (level)
-        {
-        case LogLevel::INFO:
-            logLevelString = "INFO";
-            break;
-        case LogLevel::WARNING:
-            logLevelString = "WARNING";
-            break;
-        case LogLevel::ERROR:
-            logLevelString = "ERROR";
-            break;
-        case LogLevel::DEBUG:
-            logLevelString = "DEBUG";
-            break;
-        }
+        uint64_t microseconds = microsecondFunc();
+        uint64_t totalSeconds = microseconds / 1000000;
+        uint64_t remainingMicroseconds = microseconds % 1000000;
 
-        printFunc("[" + getTimestamp() + name + logLevelString + "] " + message);
+        uint64_t hours = totalSeconds / 3600;
+        uint64_t minutes = (totalSeconds % 3600) / 60;
+        uint64_t seconds = totalSeconds % 60;
+
+        std::stringstream result;
+        for (size_t i = 0; i < format.size(); ++i)
+        {
+            if (format[i] == '%')
+            {
+                ++i; // Skip the '%' and check the next character
+                switch (format[i])
+                {
+                case 'N':
+                    result << name; // Name
+                    break;
+                case 'L':
+                    result << getLogLevelString(level); // Level
+                    break;
+                case 'T':
+                    result << message; // Text
+                    break;
+                case 'D':
+                    result << std::setfill('0') << std::setw(2) << (hours / 24); // Days
+                    break;
+                case 'H':
+                    result << std::setfill('0') << std::setw(2) << (hours % 24); // Hours
+                    break;
+                case 'M':
+                    result << std::setfill('0') << std::setw(2) << minutes; // Minutes
+                    break;
+                case 'S':
+                    result << std::setfill('0') << std::setw(2) << seconds; // Seconds
+                    break;
+                case 'U':
+                    result << std::setfill('0') << std::setw(6) << remainingMicroseconds; // Microseconds
+                    break;
+                default:
+                    result << '%' << format[i]; // Unknown
+                    break;
+                }
+            }
+            else
+            {
+                result << format[i]; // Normal character
+            }
+        }
+        result << "\n";
+
+        printFunc(result.str());
     }
 
     void EmbedLog::setLogLevel(LogLevel level)
@@ -99,23 +134,23 @@ namespace EmbedLog
         logLevel = level;
     }
 
-    std::string EmbedLog::getTimestamp()
+    std::string EmbedLog::getLogLevelString(LogLevel level)
     {
-        uint64_t microseconds = microsecondFunc();
-        uint64_t seconds = microseconds / 1000000;
-        uint64_t minutes = seconds / 60;
-        uint64_t hours = minutes / 60;
-
-        int hour = hours % 24;
-        int minute = minutes % 60;
-        int second = seconds % 60;
-        int microsec = microseconds % 1000000;
-
-        // Format the timestamp as HH:MM:SS:Microseconds
-        char timestamp[30];
-        snprintf(timestamp, sizeof(timestamp), "%02d:%02d:%02d:%06d", hour, minute, second, microsec);
-        
-        return std::string(timestamp);
+        switch (level)
+        {
+        case INFO:
+            return "INFO";
+        case WARNING:
+            return "WARNING";
+        case ERROR:
+            return "ERROR";
+        case DEBUG:
+            return "DEBUG";
+        case NONE:
+            return "NONE";
+        default:
+            return "UNKNOWN";
+        }
     }
 
 } // namespace EmbedLog
