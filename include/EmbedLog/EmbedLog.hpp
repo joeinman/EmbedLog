@@ -35,6 +35,8 @@
 #include <string>
 #include <sstream>
 #include <cstdint>
+
+#define EMBDLID EmbedLog::unique_id(__FILE__, __LINE__)
 namespace EmbedLog
 {
     // Function Types for Logging
@@ -45,14 +47,17 @@ namespace EmbedLog
     using ThrottleMap = std::unordered_map<size_t, uint64_t>;
 
     // Log Levels
-    enum LogLevel { INFO, WARNING, ERROR, DEBUG };
+    enum LogLevel { INFO, WARNING, ERROR, DEBUG, NONE };
+
+    // Unique Identifier for Throttling
+    uint64_t unique_id(std::string file, int line);
 
     /**
      * @class EmbedLog
      * @brief A minimal logging library designed for embedded systems.
      *
      * EmbedLog provides functionality to log messages at various levels of severity 
-     * (INFO, WARNING, ERROR, DEBUG). It supports user-defined functions for opening 
+     * (INFO, WARNING, ERROR, DEBUG, None). It supports user-defined functions for opening 
      * and closing the log, printing messages, and fetching timestamps in microseconds.
      */
     class EmbedLog
@@ -75,7 +80,7 @@ namespace EmbedLog
                  CloseFunction closeFunc,
                  PrintFunction printFunc,
                  MicrosecondFunction microsecondFunc,
-                 std::string name = "",
+                 std::string name = " ",
                  LogLevel logLevel = LogLevel::INFO);
 
         /**
@@ -137,8 +142,8 @@ namespace EmbedLog
          * @brief Logs a message if the current log level is high enough and throttles 
          * the message based on a specified time interval.
          *
-         * @param level The log level for this message.
          * @param throttle_id A unique identifier for the throttle.
+         * @param level The log level for this message.
          * @param throttle_ms The time interval in milliseconds.
          * @param vars The values to log.
          *
@@ -146,7 +151,7 @@ namespace EmbedLog
          * and concatenates them into a single message string.
          */
         template <typename T, typename... Types>
-        void log_throttled(LogLevel level, size_t throttle_id, uint32_t throttle_ms, T var1, Types... var2)
+        void log_throttled(size_t throttle_id, LogLevel level, uint32_t throttle_ms, T var1, Types... var2)
         {
             if (!isOpen)
                 return;
@@ -168,7 +173,7 @@ namespace EmbedLog
 
         ThrottleMap throttleMap;              // Map of throttle IDs to last log times.
         bool isOpen = false;                  // Tracks whether the log is currently open.
-        std::string name = " ";               // Optional log name.
+        std::string name;                     // Optional log name.
         LogLevel logLevel;                    // Current log level.
 
         /**

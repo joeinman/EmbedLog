@@ -31,6 +31,11 @@
 
 namespace EmbedLog
 {
+
+    uint64_t unique_id(std::string file, int line) {
+        return std::hash<std::string>{}(file + std::to_string(line));
+    }
+
     EmbedLog::EmbedLog(OpenFunction openFunc,
                        CloseFunction closeFunc,
                        PrintFunction printFunc,
@@ -43,7 +48,7 @@ namespace EmbedLog
           microsecondFunc(microsecondFunc),
           logLevel(logLevel)
     {
-        if (!name.empty())
+        if (name != " ")
             this->name = " " + name + " ";
     }
 
