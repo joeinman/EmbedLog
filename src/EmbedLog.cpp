@@ -77,32 +77,35 @@ namespace EmbedLog
         if (!isOpen)
             return;
 
-        if (level >= logLevel)
-        {
-            va_list args;
-            va_start(args, format);
-            
-            // First pass to get the required buffer size
-            int size = vsnprintf(nullptr, 0, format.c_str(), args);
-            va_end(args);
+        if (level < logLevel)
+            return;
 
-            if (size < 0)
-                return; // Handle error in formatting
-            
-            // Allocate a buffer of the required size
-            std::vector<char> buffer(size + 1); // +1 for the null terminator
-            
-            va_start(args, format);
-            vsnprintf(buffer.data(), buffer.size(), format.c_str(), args);
-            va_end(args);
+        va_list args;
+        va_start(args, format);
+        
+        // First pass to get the required buffer size
+        int size = vsnprintf(nullptr, 0, format.c_str(), args);
+        va_end(args);
 
-            print(level, buffer.data());
-        }
+        if (size < 0)
+            return; // Handle error in formatting
+        
+        // Allocate a buffer of the required size
+        std::vector<char> buffer(size + 1); // +1 for the null terminator
+        
+        va_start(args, format);
+        vsnprintf(buffer.data(), buffer.size(), format.c_str(), args);
+        va_end(args);
+
+        print(level, buffer.data());
     }
 
     void EmbedLog::log_throttled(size_t throttle_id, uint32_t throttle_ms, LogLevel level,  const std::string& format, ...)
     {
         if (!isOpen)
+            return;
+
+        if (level < logLevel)
             return;
 
         auto now = microsecondFunc();
