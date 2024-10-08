@@ -5,7 +5,6 @@ namespace EmbedLog
     EmbedLog::EmbedLog(OpenFunction openFunc, CloseFunction closeFunc, PrintFunction printFunc, MicrosecondFunction microsecondFunc, LogLevel logLevel)
         : openFunc(openFunc), closeFunc(closeFunc), printFunc(printFunc), microsecondFunc(microsecondFunc), logLevel(logLevel)
     {
-        openFunc();
     }
 
     EmbedLog::~EmbedLog()
@@ -13,9 +12,21 @@ namespace EmbedLog
         closeFunc();
     }
 
+    bool EmbedLog::open()
+    {
+        isOpen = true;
+        return openFunc();
+    }
+
+    bool EmbedLog::close()
+    {
+        isOpen = false;
+        return closeFunc();
+    }
+
     void EmbedLog::log(LogLevel level, const std::string& message)
     {
-        if (level >= logLevel)
+        if ((level >= logLevel) && isOpen)
         {
             std::string logLevelString;
             switch (level)
