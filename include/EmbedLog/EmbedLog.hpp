@@ -29,10 +29,13 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <functional>
 #include <string>
 #include <sstream>
 #include <cstdint>
+
+#define EMBDLID EmbedLog::unique_id(__FILE__, __LINE__)
 
 namespace EmbedLog
 {
@@ -41,9 +44,13 @@ namespace EmbedLog
     using CloseFunction = std::function<bool()>;
     using PrintFunction = std::function<void(const std::string&)>;
     using MicrosecondFunction = std::function<uint64_t()>;
+    using ThrottleMap = std::unordered_map<size_t, uint64_t>;
 
     // Log Levels
     enum LogLevel { INFO, WARNING, ERROR, DEBUG, NONE };
+
+    // Unique Identifier for Throttling
+    uint64_t unique_id(std::string file, int line);
 
     /**
      * @class EmbedLog
@@ -132,16 +139,44 @@ namespace EmbedLog
             }
         }
 
+        /**
+         * @brief Logs a message if the current log level is high enough and throttles 
+         * the message based on a specified time interval.
+         *
+         * @param throttle_id A unique identifier for the throttle.
+         * @param level The log level for this message.
+         * @param throttle_ms The time interval in milliseconds.
+         * @param vars The values to log.
+         *
+         * @note This function uses a variadic template to accept multiple arguments 
+         * and concatenates them into a single message string.
+         */
+        template <typename T, typename... Types>
+        void log_throttled(size_t throttle_id, LogLevel level, uint32_t throttle_ms, T var1, Types... var2)
+        {
+            if (!isOpen)
+                return;
+
+            auto now = microsecondFunc();
+            auto last = throttleMap[throttle_id];
+            if (now - last > throttle_ms * 1000)
+            {
+                log(level, var1, var2...);
+                throttleMap[throttle_id] = now;
+            }
+        }
+
     private:
         OpenFunction openFunc;                        // Function for opening the log.
         CloseFunction closeFunc;                      // Function for closing the log.
         PrintFunction printFunc;                      // Function for printing log messages.
         MicrosecondFunction microsecondFunc;          // Function for getting microsecond timestamps.
 
-        LogLevel logLevel = INFO;                     // Current log level.
-        bool isOpen = false;                          // Tracks whether the log is currently open.
-        std::string format;                           // Format for the timestamp.
-        std::string name;                             // Optional log name.
+        ThrottleMap throttleMap;              // Map of throttle IDs to last message times.
+        LogLevel logLevel = INFO;             // Current log level.
+        bool isOpen = false;                  // Tracks whether the log is currently open.
+        std::string format;                   // Format for the timestamp.
+        std::string name;                     // Optional log name.
 
         /**
          * @brief Prints a message at a specified log level.
