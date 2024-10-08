@@ -22,8 +22,8 @@ using namespace EmbedLog;
 int main()
 {
     EmbedLog::EmbedLog logge(
-        []() { stdio_init_all(); },
-        []() { stdio_deinit_all(); },
+        []() { return stdio_init_all(); },
+        []() { return stdio_deinit_all(); },
         [](const std::string& message) { printf("%s", message.c_str()); },
         []() { return to_us_since_boot(get_absolute_time()); }
     );
