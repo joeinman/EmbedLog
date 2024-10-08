@@ -29,6 +29,8 @@
 
 #include "EmbedLog/EmbedLog.hpp"
 
+#include <iomanip>
+
 namespace EmbedLog
 {
     EmbedLog::EmbedLog(OpenFunction openFunc,
@@ -97,20 +99,48 @@ namespace EmbedLog
     std::string EmbedLog::getTimestamp()
     {
         uint64_t microseconds = microsecondFunc();
-        uint64_t seconds = microseconds / 1000000;
-        uint64_t minutes = seconds / 60;
-        uint64_t hours = minutes / 60;
+        uint64_t totalSeconds = microseconds / 1000000;
+        uint64_t remainingMicroseconds = microseconds % 1000000;
 
-        int hour = hours % 24;
-        int minute = minutes % 60;
-        int second = seconds % 60;
-        int microsec = microseconds % 1000000;
+        uint64_t hours = totalSeconds / 3600;
+        uint64_t minutes = (totalSeconds % 3600) / 60;
+        uint64_t seconds = totalSeconds % 60;
 
-        // Format the timestamp as HH:MM:SS:Microseconds
-        char timestamp[30];
-        snprintf(timestamp, sizeof(timestamp), "%02d:%02d:%02d:%06d", hour, minute, second, microsec);
-        
-        return std::string(timestamp);
+        std::stringstream result;
+        for (size_t i = 0; i < timestamp_format.size(); ++i)
+        {
+            if (timestamp_format[i] == '%')
+            {
+                ++i; // Skip the '%' and check the next character
+                switch (timestamp_format[i])
+                {
+                case 'D':  // Interpret as days, which can be calculated from hours
+                    result << (hours / 24);
+                    break;
+                case 'H':
+                    result << std::setfill('0') << std::setw(2) << (hours % 24); // Hours within the day
+                    break;
+                case 'M':
+                    result << std::setfill('0') << std::setw(2) << minutes; // Minutes
+                    break;
+                case 'S':
+                    result << std::setfill('0') << std::setw(2) << seconds; // Seconds
+                    break;
+                case 'U':
+                    result << std::setfill('0') << std::setw(6) << remainingMicroseconds; // Microseconds
+                    break;
+                default:
+                    result << '%' << timestamp_format[i]; // Unknown format specifier, output as is
+                    break;
+                }
+            }
+            else
+            {
+                result << timestamp_format[i]; // Copy non-format characters directly
+            }
+        }
+
+        return result.str();
     }
 
 } // namespace EmbedLog

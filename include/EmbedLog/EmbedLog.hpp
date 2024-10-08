@@ -134,14 +134,15 @@ namespace EmbedLog
         }
 
     private:
-        OpenFunction openFunc;                // Function for opening the log.
-        CloseFunction closeFunc;              // Function for closing the log.
-        PrintFunction printFunc;              // Function for printing log messages.
-        MicrosecondFunction microsecondFunc;  // Function for getting microsecond timestamps.
+        OpenFunction openFunc;                        // Function for opening the log.
+        CloseFunction closeFunc;                      // Function for closing the log.
+        PrintFunction printFunc;                      // Function for printing log messages.
+        MicrosecondFunction microsecondFunc;          // Function for getting microsecond timestamps.
 
-        bool isOpen = false;                  // Tracks whether the log is currently open.
-        std::string name = " ";               // Optional log name.
-        LogLevel logLevel;                    // Current log level.
+        std::string timestamp_format = "%H:%M:%S.%U"; // Format for the timestamp.
+        bool isOpen = false;                          // Tracks whether the log is currently open.
+        std::string name = " ";                       // Optional log name.
+        LogLevel logLevel;                            // Current log level.
 
         /**
          * @brief Prints a message at a specified log level.
@@ -160,5 +161,15 @@ namespace EmbedLog
          * @return A string representing the timestamp in microseconds.
          */
         std::string getTimestamp();
+
+        /**
+         * @brief Sets the format for the timestamp.
+         *
+         * @param format The desired format for the timestamp. Valid format parameters are:
+         * 
+         * @note The default format is "%H:%M:%S.%U".
+         * @note %D - Day, %H - Hour, %M - Minute, %S - Second, %U - Microsecond.
+         */
+        void setTimestampFormat(const std::string& format) { timestamp_format = format; }
     };
 }
