@@ -38,7 +38,10 @@ namespace EmbedLog
 
     void EmbedLog::log(LogLevel level, const std::string& message)
     {
-        if ((level >= logLevel) && isOpen)
+        if (!isOpen)
+            return;
+
+        if (level >= logLevel)
         {
             std::string logLevelString;
             switch (level)
