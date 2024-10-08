@@ -30,6 +30,7 @@
 #pragma once
 
 #include <functional>
+#include <cstdint>
 #include <string>
 #include <sstream>
 #include <cstdint>

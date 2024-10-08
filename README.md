@@ -19,6 +19,7 @@ EmbedLog is a lightweight hardware agnostic logging library designed for embedde
 #include <memory>
 
 using namespace EmbedLog;
+
 std::unique_ptr<EmbedLog::EmbedLog> client_logger;
 std::unique_ptr<EmbedLog::EmbedLog> server_logger;
 
@@ -30,6 +31,7 @@ int main() {
         []() { return to_us_since_boot(get_absolute_time()); },
         "Client"
     );
+    logger.open();
 
     server_logger = std::make_unique<EmbedLog::EmbedLog>(
         []() { return stdio_init_all(); },
