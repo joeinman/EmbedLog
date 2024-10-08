@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <cstdint>
 #include <string>
 
 namespace EmbedLog
@@ -8,7 +9,7 @@ namespace EmbedLog
     using OpenFunction = std::function<bool()>;
     using CloseFunction = std::function<bool()>;
     using PrintFunction = std::function<void(const std::string&)>;
-    using MicrosecondFunction = std::function<long()>;
+    using MicrosecondFunction = std::function<uint64_t()>;
 
     enum LogLevel { INFO, WARNING, ERROR, DEBUG };
 

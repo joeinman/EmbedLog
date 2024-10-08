@@ -71,10 +71,10 @@ namespace EmbedLog
 
     std::string EmbedLog::getTimestamp()
     {
-        long microseconds = microsecondFunc();
-        long seconds = microseconds / 1000000;
-        long minutes = seconds / 60;
-        long hours = minutes / 60;
+        uint64_t microseconds = microsecondFunc();
+        uint64_t seconds = microseconds / 1000000;
+        uint64_t minutes = seconds / 60;
+        uint64_t hours = minutes / 60;
 
         int hour = hours % 24;
         int minute = minutes % 60;
