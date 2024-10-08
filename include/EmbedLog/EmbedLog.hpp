@@ -43,14 +43,14 @@ namespace EmbedLog
     using MicrosecondFunction = std::function<uint64_t()>;
 
     // Log Levels
-    enum LogLevel { INFO, WARNING, ERROR, DEBUG };
+    enum LogLevel { INFO, WARNING, ERROR, DEBUG, NONE };
 
     /**
      * @class EmbedLog
      * @brief A minimal logging library designed for embedded systems.
      *
      * EmbedLog provides functionality to log messages at various levels of severity 
-     * (INFO, WARNING, ERROR, DEBUG). It supports user-defined functions for opening 
+     * (INFO, WARNING, ERROR, DEBUG, NONE). It supports user-defined functions for opening 
      * and closing the log, printing messages, and fetching timestamps in microseconds.
      */
     class EmbedLog
@@ -64,18 +64,17 @@ namespace EmbedLog
          * @param printFunc Function to print log messages.
          * @param microsecondFunc Function to retrieve the current time in microseconds.
          * @param name Optional: A name for the log. Defaults to an empty string.
-         * @param format The desired format for the timestamp.
+         * @param format The desired format for the log messages. Defaults to "[%D:%H:%M:%S.%U %N %L] %T".
          *
          * @note It is important to provide valid open, close, and print functions 
          * to enable proper operation of the log system.
-         * @note The default timestamp format is "%H:%M:%S.%U".
          */
         EmbedLog(OpenFunction openFunc, 
                  CloseFunction closeFunc, 
                  PrintFunction printFunc, 
                  MicrosecondFunction microsecondFunc, 
                  std::string name = "", 
-                 std::string timestamp_format = "%H:%M:%S.%U");
+                 std::string format = "[%D:%H:%M:%S.%U %N %L] %T");
 
         /**
          * @brief Destroys the EmbedLog object.
@@ -129,7 +128,6 @@ namespace EmbedLog
                 std::stringstream ss;
                 ss << var1;
                 (ss << ... << var2); // Variadic argument expansion.
-                ss << "\n";
                 print(level, ss.str());
             }
         }
@@ -140,10 +138,10 @@ namespace EmbedLog
         PrintFunction printFunc;                      // Function for printing log messages.
         MicrosecondFunction microsecondFunc;          // Function for getting microsecond timestamps.
 
-        std::string timestamp_format = "%H:%M:%S.%U"; // Format for the timestamp.
-        bool isOpen = false;                          // Tracks whether the log is currently open.
-        std::string name = " ";                       // Optional log name.
         LogLevel logLevel = INFO;                     // Current log level.
+        bool isOpen = false;                          // Tracks whether the log is currently open.
+        std::string format;                           // Format for the timestamp.
+        std::string name;                             // Optional log name.
 
         /**
          * @brief Prints a message at a specified log level.
@@ -157,10 +155,11 @@ namespace EmbedLog
         void print(LogLevel level, const std::string& message);
 
         /**
-         * @brief Retrieves the current timestamp as a formatted string.
+         * @brief Gets a string representation of the log level.
          *
-         * @return A string representing the timestamp in microseconds.
+         * @param level The log level to convert.
+         * @return A string representation of the log level.
          */
-        std::string getTimestamp();
+        std::string getLogLevelString(LogLevel level);
     };
 }
