@@ -96,7 +96,7 @@ namespace EmbedLog
             vsnprintf(buffer.data(), buffer.size(), format.c_str(), args);
             va_end(args);
 
-            print(level, buffer.data()); // Use buffer.data() for the pointer to the char array
+            print(level, buffer.data());
         }
     }
 

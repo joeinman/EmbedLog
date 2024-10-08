@@ -70,8 +70,8 @@ namespace EmbedLog
          * @param closeFunc Function to be called when closing the log.
          * @param printFunc Function to print log messages.
          * @param microsecondFunc Function to retrieve the current time in microseconds.
-         * @param name Optional: A name for the log. Defaults to an empty string.
-         * @param format The desired format for the log messages. Defaults to "[%D:%H:%M:%S.%U %N %L] %T".
+         * @param name A name for the log.
+         * @param format Optional: The desired format for the log messages. Defaults to "[%D:%H:%M:%S.%U %N %L] %T".
          *
          * @note It is important to provide valid open, close, and print functions 
          * to enable proper operation of the log system.
@@ -80,7 +80,7 @@ namespace EmbedLog
                  CloseFunction closeFunc, 
                  PrintFunction printFunc, 
                  MicrosecondFunction microsecondFunc, 
-                 std::string name = "", 
+                 std::string name, 
                  std::string format = "[%D:%H:%M:%S.%U %N %L] %T");
 
         /**
@@ -143,7 +143,7 @@ namespace EmbedLog
         LogLevel logLevel = INFO;             // Current log level.
         bool isOpen = false;                  // Tracks whether the log is currently open.
         std::string format;                   // Format for the timestamp.
-        std::string name;                     // Optional log name.
+        std::string name;                     // Log name.
 
         /**
          * @brief Prints a message at a specified log level.
