@@ -33,7 +33,6 @@
 
 namespace EmbedLog
 {
-
     uint64_t unique_id(std::string file, int line) {
         return std::hash<std::string>{}(file + std::to_string(line));
     }
@@ -71,6 +70,68 @@ namespace EmbedLog
         bool result = closeFunc();
         isOpen = !result;
         return result;
+    }
+
+    void EmbedLog::log(LogLevel level, const std::string& format, ...)
+    {
+        if (!isOpen)
+            return;
+
+        if (level < logLevel)
+            return;
+
+        va_list args;
+        va_start(args, format);
+        
+        // First pass to get the required buffer size
+        int size = vsnprintf(nullptr, 0, format.c_str(), args);
+        va_end(args);
+
+        if (size < 0)
+            return; // Handle error in formatting
+        
+        // Allocate a buffer of the required size
+        std::vector<char> buffer(size + 1); // +1 for the null terminator
+        
+        va_start(args, format);
+        vsnprintf(buffer.data(), buffer.size(), format.c_str(), args);
+        va_end(args);
+
+        print(level, buffer.data());
+    }
+
+    void EmbedLog::log_throttled(size_t throttle_id, uint32_t throttle_ms, LogLevel level,  const std::string& format, ...)
+    {
+        if (!isOpen)
+            return;
+
+        if (level < logLevel)
+            return;
+
+        auto now = microsecondFunc();
+        auto last = throttleMap[throttle_id];
+        if (now - last > throttle_ms * 1000)
+        {
+            va_list args;
+            va_start(args, format);
+            
+            // First pass to get the required buffer size
+            int size = vsnprintf(nullptr, 0, format.c_str(), args);
+            va_end(args);
+
+            if (size < 0)
+                return; // Handle error in formatting
+            
+            // Allocate a buffer of the required size
+            std::vector<char> buffer(size + 1); // +1 for the null terminator
+            
+            va_start(args, format);
+            vsnprintf(buffer.data(), buffer.size(), format.c_str(), args);
+            va_end(args);
+
+            print(level, buffer.data()); // Use buffer.data() for the pointer to the char array
+            throttleMap[throttle_id] = now;
+        }
     }
 
     void EmbedLog::print(LogLevel level, const std::string& message)

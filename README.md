@@ -13,15 +13,14 @@ EmbedLog is a lightweight hardware agnostic logging library designed for embedde
 ## Basic Example:
 
 ```cpp
+// Imports
 #include <EmbedLog/EmbedLog.hpp>
 #include <pico/stdlib.h>
 #include <stdio.h>
 #include <memory>
 
 using namespace EmbedLog;
-
 std::unique_ptr<EmbedLog::EmbedLog> client_logger;
-std::unique_ptr<EmbedLog::EmbedLog> server_logger;
 
 int main() {
     client_logger = std::make_unique<EmbedLog::EmbedLog>(
@@ -29,26 +28,26 @@ int main() {
         []() { return stdio_deinit_all(); },
         [](const std::string& message) { printf("%s", message.c_str()); },
         []() { return to_us_since_boot(get_absolute_time()); },
-        "Client"
-    );
-    logger.open();
-
-    server_logger = std::make_unique<EmbedLog::EmbedLog>(
-        []() { return stdio_init_all(); },
-        []() { return stdio_deinit_all(); },
-        [](const std::string& message) { printf("%s", message.c_str()); },
-        []() { return to_us_since_boot(get_absolute_time()); },
-        "Server"
+        "Logger",
+        "[%H:%M:%S] [%N] [%L] - %T"
     );
 
+    // Open The Logger
     client_logger->open();
-    server_logger->open();
+    
+    int x = 1, y = 2;
 
     while (1)
     {
-        client_logger->log(INFO, "Hello, World! ", 2, " ", 3.14);
-        server_logger->log(WARNING, "Hello, World!");
+        // Log Coordinates Every 5 Seconds
+        client_logger->log_throttled(EMBDLID, 5000, INFO, "Coordinates: (%d, %d)", x, y);
+
+        // Log "Hello, World!" Every Second
+        client_logger->log(WARNING, "Hello, World!");
         sleep_ms(1000);
     }
+
+    // Close The Logger
+    client_logger->close();
 }
 ```
