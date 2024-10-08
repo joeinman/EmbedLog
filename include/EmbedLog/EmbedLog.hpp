@@ -30,7 +30,6 @@
 #pragma once
 
 #include <functional>
-#include <cstdint>
 #include <string>
 #include <sstream>
 #include <cstdint>
@@ -70,11 +69,11 @@ namespace EmbedLog
          * @note It is important to provide valid open, close, and print functions 
          * to enable proper operation of the log system.
          */
-        EmbedLog(OpenFunction openFunc,
-                 CloseFunction closeFunc,
-                 PrintFunction printFunc,
-                 MicrosecondFunction microsecondFunc,
-                 std::string name = "",
+        EmbedLog(OpenFunction openFunc, 
+                 CloseFunction closeFunc, 
+                 PrintFunction printFunc, 
+                 MicrosecondFunction microsecondFunc, 
+                 std::string name = "", 
                  LogLevel logLevel = LogLevel::INFO);
 
         /**
@@ -108,10 +107,12 @@ namespace EmbedLog
         void setLogLevel(LogLevel level);
 
         /**
-         * @brief Logs a message if the current log level is high enough.
+         * @brief Logs a message if the specified log level is high enough.
          *
+         * @tparam T First argument type.
+         * @tparam Types Variadic argument types.
          * @param level The log level for this message.
-         * @param vars The values to log.
+         * @param vars The values
          *
          * @note This function uses a variadic template to accept multiple arguments 
          * and concatenates them into a single message string.
@@ -119,7 +120,10 @@ namespace EmbedLog
         template <typename T, typename... Types>
         void log(LogLevel level, T var1, Types... var2)
         {
-            if ((level >= logLevel) && isOpen)
+            if (!isOpen)
+                return;
+
+            if (level >= logLevel)
             {
                 std::stringstream ss;
                 ss << var1;
@@ -157,5 +161,4 @@ namespace EmbedLog
          */
         std::string getTimestamp();
     };
-
-} // namespace EmbedLog
+}
