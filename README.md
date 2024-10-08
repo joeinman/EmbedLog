@@ -16,19 +16,36 @@ EmbedLog is a lightweight hardware agnostic logging library designed for embedde
 #include <EmbedLog/EmbedLog.hpp>
 #include <pico/stdlib.h>
 #include <stdio.h>
+#include <memory>
 
-int main()
-{
-    EmbedLog::EmbedLog logge(
-        []() { stdio_init_all(); },
-        []() { stdio_deinit_all(); },
+using namespace EmbedLog;
+std::unique_ptr<EmbedLog::EmbedLog> client_logger;
+std::unique_ptr<EmbedLog::EmbedLog> server_logger;
+
+int main() {
+    client_logger = std::make_unique<EmbedLog::EmbedLog>(
+        []() { return stdio_init_all(); },
+        []() { return stdio_deinit_all(); },
         [](const std::string& message) { printf("%s", message.c_str()); },
-        []() { return to_us_since_boot(get_absolute_time()); }
+        []() { return to_us_since_boot(get_absolute_time()); },
+        "Client"
     );
+
+    server_logger = std::make_unique<EmbedLog::EmbedLog>(
+        []() { return stdio_init_all(); },
+        []() { return stdio_deinit_all(); },
+        [](const std::string& message) { printf("%s", message.c_str()); },
+        []() { return to_us_since_boot(get_absolute_time()); },
+        "Server"
+    );
+
+    client_logger->open();
+    server_logger->open();
 
     while (1)
     {
-        logger.log(EmbedLog::LogLevel::INFO, "Hello, info world!\n");
+        client_logger->log(INFO, "Hello, World! ", 2, " ", 3.14);
+        server_logger->log(WARNING, "Hello, World!");
         sleep_ms(1000);
     }
 }

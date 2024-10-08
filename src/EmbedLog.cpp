@@ -49,12 +49,14 @@ namespace EmbedLog
 
     EmbedLog::~EmbedLog()
     {
-        closeFunc();
+        if (isOpen)
+            closeFunc();
     }
 
     bool EmbedLog::open()
     {
-        isOpen = openFunc();
+        if (!isOpen)
+            isOpen = openFunc();
         return isOpen;
     }
 
