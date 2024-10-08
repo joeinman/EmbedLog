@@ -2,10 +2,20 @@
 
 namespace EmbedLog
 {
-    EmbedLog::EmbedLog(OpenFunction openFunc, CloseFunction closeFunc, PrintFunction printFunc, MicrosecondFunction microsecondFunc, LogLevel logLevel)
-        : openFunc(openFunc), closeFunc(closeFunc), printFunc(printFunc), microsecondFunc(microsecondFunc), logLevel(logLevel)
+    EmbedLog::EmbedLog(OpenFunction openFunc,
+                       CloseFunction closeFunc,
+                       PrintFunction printFunc,
+                       MicrosecondFunction microsecondFunc,
+                       std::string name,
+                       LogLevel logLevel)
+        : openFunc(openFunc),
+          closeFunc(closeFunc),
+          printFunc(printFunc),
+          microsecondFunc(microsecondFunc),
+          logLevel(logLevel)
     {
-        openFunc();
+        if (!name.empty())
+            this->name = " " + name + " ";
     }
 
     EmbedLog::~EmbedLog()
@@ -15,14 +25,15 @@ namespace EmbedLog
 
     bool EmbedLog::open()
     {
-        isOpen = true;
-        return openFunc();
+        isOpen = openFunc();
+        return isOpen;
     }
 
     bool EmbedLog::close()
     {
-        isOpen = false;
-        return closeFunc();
+        bool result = closeFunc();
+        isOpen = !result;
+        return result;
     }
 
     void EmbedLog::print(LogLevel level, const std::string& message)
@@ -44,7 +55,7 @@ namespace EmbedLog
             break;
         }
 
-        printFunc(getTimestamp() + " [" + logLevelString + "] " + message);
+        printFunc("[" + getTimestamp() + name + logLevelString + "] " + message);
     }
 
     void EmbedLog::setLogLevel(LogLevel level)
@@ -54,10 +65,10 @@ namespace EmbedLog
 
     std::string EmbedLog::getTimestamp()
     {
-        long microseconds = microsecondFunc();
-        long seconds = microseconds / 1000000;
-        long minutes = seconds / 60;
-        long hours = minutes / 60;
+        uint64_t microseconds = microsecondFunc();
+        uint64_t seconds = microseconds / 1000000;
+        uint64_t minutes = seconds / 60;
+        uint64_t hours = minutes / 60;
 
         int hour = hours % 24;
         int minute = minutes % 60;

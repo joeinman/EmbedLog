@@ -1,20 +1,21 @@
 #include <functional>
 #include <string>
 #include <sstream>
+#include <cstdint>
 
 namespace EmbedLog
 {
     using OpenFunction = std::function<bool()>;
     using CloseFunction = std::function<bool()>;
     using PrintFunction = std::function<void(const std::string&)>;
-    using MicrosecondFunction = std::function<long()>;
+    using MicrosecondFunction = std::function<uint64_t()>;
 
     enum LogLevel { INFO, WARNING, ERROR, DEBUG };
 
     class EmbedLog
     {
     public:
-        EmbedLog(OpenFunction openFunc, CloseFunction closeFunc, PrintFunction printFunc, MicrosecondFunction microsecondFunc, LogLevel logLevel = LogLevel::INFO);
+        EmbedLog(OpenFunction openFunc, CloseFunction closeFunc, PrintFunction printFunc, MicrosecondFunction microsecondFunc, std::string = "", LogLevel logLevel = LogLevel::INFO);
         ~EmbedLog();
 
         bool open();
@@ -42,6 +43,7 @@ namespace EmbedLog
         MicrosecondFunction microsecondFunc;
 
         bool isOpen = false;
+        std::string name = " ";
         LogLevel logLevel;
 
         void print(LogLevel level, const std::string& message);
