@@ -1,3 +1,5 @@
+#pragma once
+
 #include <functional>
 #include <string>
 
@@ -13,7 +15,7 @@ namespace EmbedLog
     class EmbedLog
     {
     public:
-        EmbedLog(OpenFunction openFunc, CloseFunction closeFunc, PrintFunction printFunc, MicrosecondFunction microsecondFunc, LogLevel logLevel = LogLevel::INFO);
+        EmbedLog(OpenFunction openFunc, CloseFunction closeFunc, PrintFunction printFunc, MicrosecondFunction microsecondFunc, std::string name = "", LogLevel logLevel = LogLevel::INFO);
         ~EmbedLog();
 
         bool open();
@@ -27,8 +29,10 @@ namespace EmbedLog
         CloseFunction closeFunc;
         PrintFunction printFunc;
         MicrosecondFunction microsecondFunc;
-        LogLevel logLevel;
+
         bool isOpen = false;
+        LogLevel logLevel;
+        std::string name = " ";
 
         std::string getTimestamp();
     };

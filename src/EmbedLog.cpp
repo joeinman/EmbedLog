@@ -2,9 +2,20 @@
 
 namespace EmbedLog
 {
-    EmbedLog::EmbedLog(OpenFunction openFunc, CloseFunction closeFunc, PrintFunction printFunc, MicrosecondFunction microsecondFunc, LogLevel logLevel)
-        : openFunc(openFunc), closeFunc(closeFunc), printFunc(printFunc), microsecondFunc(microsecondFunc), logLevel(logLevel)
+    EmbedLog::EmbedLog(OpenFunction openFunc,
+                       CloseFunction closeFunc,
+                       PrintFunction printFunc,
+                       MicrosecondFunction microsecondFunc,
+                       std::string name,
+                       LogLevel logLevel)
+        : openFunc(openFunc),
+          closeFunc(closeFunc),
+          printFunc(printFunc),
+          microsecondFunc(microsecondFunc),
+          logLevel(logLevel)
     {
+        if (!name.empty())
+            this->name = " " + name + " ";
     }
 
     EmbedLog::~EmbedLog()
@@ -45,7 +56,7 @@ namespace EmbedLog
                 break;
             }
 
-            printFunc(getTimestamp() + " [" + logLevelString + "] " + message);
+            printFunc("[" + getTimestamp() + name + logLevelString + "] " + message);
         }
     }
 
