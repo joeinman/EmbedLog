@@ -38,12 +38,12 @@ namespace EmbedLog
                        PrintFunction printFunc,
                        MicrosecondFunction microsecondFunc,
                        std::string name,
-                       LogLevel logLevel)
+                       std::string timestamp_format)
         : openFunc(openFunc),
           closeFunc(closeFunc),
           printFunc(printFunc),
           microsecondFunc(microsecondFunc),
-          logLevel(logLevel)
+          timestamp_format(timestamp_format)
     {
         if (!name.empty())
             this->name = " " + name + " ";

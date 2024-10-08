@@ -64,17 +64,18 @@ namespace EmbedLog
          * @param printFunc Function to print log messages.
          * @param microsecondFunc Function to retrieve the current time in microseconds.
          * @param name Optional: A name for the log. Defaults to an empty string.
-         * @param logLevel Optional: The initial log level. Defaults to INFO.
+         * @param format The desired format for the timestamp.
          *
          * @note It is important to provide valid open, close, and print functions 
          * to enable proper operation of the log system.
+         * @note The default timestamp format is "%H:%M:%S.%U".
          */
         EmbedLog(OpenFunction openFunc, 
                  CloseFunction closeFunc, 
                  PrintFunction printFunc, 
                  MicrosecondFunction microsecondFunc, 
                  std::string name = "", 
-                 LogLevel logLevel = LogLevel::INFO);
+                 std::string timestamp_format = "%H:%M:%S.%U");
 
         /**
          * @brief Destroys the EmbedLog object.
@@ -142,7 +143,7 @@ namespace EmbedLog
         std::string timestamp_format = "%H:%M:%S.%U"; // Format for the timestamp.
         bool isOpen = false;                          // Tracks whether the log is currently open.
         std::string name = " ";                       // Optional log name.
-        LogLevel logLevel;                            // Current log level.
+        LogLevel logLevel = INFO;                     // Current log level.
 
         /**
          * @brief Prints a message at a specified log level.
@@ -161,15 +162,5 @@ namespace EmbedLog
          * @return A string representing the timestamp in microseconds.
          */
         std::string getTimestamp();
-
-        /**
-         * @brief Sets the format for the timestamp.
-         *
-         * @param format The desired format for the timestamp. Valid format parameters are:
-         * 
-         * @note The default format is "%H:%M:%S.%U".
-         * @note %D - Day, %H - Hour, %M - Minute, %S - Second, %U - Microsecond.
-         */
-        void setTimestampFormat(const std::string& format) { timestamp_format = format; }
     };
 }
