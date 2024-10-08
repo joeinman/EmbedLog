@@ -32,8 +32,8 @@
 #include <unordered_map>
 #include <functional>
 #include <string>
-#include <sstream>
 #include <cstdint>
+#include <cstdarg>
 
 #define EMBDLID EmbedLog::unique_id(__FILE__, __LINE__)
 
@@ -116,61 +116,28 @@ namespace EmbedLog
         /**
          * @brief Logs a message if the specified log level is high enough.
          *
-         * @tparam T First argument type.
-         * @tparam Types Variadic argument types.
          * @param level The log level for this message.
-         * @param vars The values
-         *
-         * @note This function uses a variadic template to accept multiple arguments 
-         * and concatenates them into a single message string.
+         * @param format The format string for the message.
+         * @param ... The values to log.
          */
-        template <typename T, typename... Types>
-        void log(LogLevel level, T var1, Types... var2)
-        {
-            if (!isOpen)
-                return;
-
-            if (level >= logLevel)
-            {
-                std::stringstream ss;
-                ss << var1;
-                (ss << ... << var2); // Variadic argument expansion.
-                print(level, ss.str());
-            }
-        }
+        void log(LogLevel level, const std::string& format, ...);
 
         /**
-         * @brief Logs a message if the current log level is high enough and throttles 
-         * the message based on a specified time interval.
+         * @brief Logs a message if the specified log level is high enough.
          *
-         * @param throttle_id A unique identifier for the throttle.
+         * @param throttle_id The unique identifier for this log message.
+         * @param throttle_ms The minimum time in milliseconds between messages.
          * @param level The log level for this message.
-         * @param throttle_ms The time interval in milliseconds.
-         * @param vars The values to log.
-         *
-         * @note This function uses a variadic template to accept multiple arguments 
-         * and concatenates them into a single message string.
+         * @param format The format string for the message.
+         * @param ... The values to log.
          */
-        template <typename T, typename... Types>
-        void log_throttled(size_t throttle_id, LogLevel level, uint32_t throttle_ms, T var1, Types... var2)
-        {
-            if (!isOpen)
-                return;
-
-            auto now = microsecondFunc();
-            auto last = throttleMap[throttle_id];
-            if (now - last > throttle_ms * 1000)
-            {
-                log(level, var1, var2...);
-                throttleMap[throttle_id] = now;
-            }
-        }
+        void log_throttled(size_t throttle_id, uint32_t throttle_ms, LogLevel level,  const std::string& format, ...);
 
     private:
-        OpenFunction openFunc;                        // Function for opening the log.
-        CloseFunction closeFunc;                      // Function for closing the log.
-        PrintFunction printFunc;                      // Function for printing log messages.
-        MicrosecondFunction microsecondFunc;          // Function for getting microsecond timestamps.
+        OpenFunction openFunc;                // Function for opening the log.
+        CloseFunction closeFunc;              // Function for closing the log.
+        PrintFunction printFunc;              // Function for printing log messages.
+        MicrosecondFunction microsecondFunc;  // Function for getting microsecond timestamps.
 
         ThrottleMap throttleMap;              // Map of throttle IDs to last message times.
         LogLevel logLevel = INFO;             // Current log level.
