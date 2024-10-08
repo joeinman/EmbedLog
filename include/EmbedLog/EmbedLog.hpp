@@ -31,7 +31,6 @@
 
 #include <unordered_map>
 #include <functional>
-#include <cstdint>
 #include <string>
 #include <sstream>
 #include <cstdint>
@@ -114,10 +113,12 @@ namespace EmbedLog
         void setLogLevel(LogLevel level);
 
         /**
-         * @brief Logs a message if the current log level is high enough.
+         * @brief Logs a message if the specified log level is high enough.
          *
+         * @tparam T First argument type.
+         * @tparam Types Variadic argument types.
          * @param level The log level for this message.
-         * @param vars The values to log.
+         * @param vars The values
          *
          * @note This function uses a variadic template to accept multiple arguments 
          * and concatenates them into a single message string.
@@ -194,5 +195,4 @@ namespace EmbedLog
          */
         std::string getTimestamp();
     };
-
-} // namespace EmbedLog
+}
