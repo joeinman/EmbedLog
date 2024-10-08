@@ -13,6 +13,18 @@ namespace EmbedLog
         closeFunc();
     }
 
+    bool EmbedLog::open()
+    {
+        isOpen = true;
+        return openFunc();
+    }
+
+    bool EmbedLog::close()
+    {
+        isOpen = false;
+        return closeFunc();
+    }
+
     void EmbedLog::print(LogLevel level, const std::string& message)
     {
         std::string logLevelString;
