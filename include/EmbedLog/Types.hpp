@@ -1,13 +1,34 @@
+/**
+ * @file EmbedLogError.hpp
+ * @brief Defines the logging levels, timestamp, token types, and function types for the EmbedLog library.
+ *
+ * Copyright (c) 2025, Joe Inman
+ *
+ * Licensed under the MIT License.
+ * You may obtain a copy of the License at:
+ *     https://opensource.org/licenses/MIT
+ *
+ * This file is part of the EmbedLog Library.
+ */
+
 #pragma once
 
 #include <stdint.h>
 
 #include <functional>
 #include <string>
+#include <array>
 
 namespace EmbedLog
 {
 
+/**
+ * @enum LogLevel
+ * @brief Enumerates the different logging levels.
+ *
+ * The LogLevel enum class defines several levels of logging to classify log messages
+ * by their severity.
+ */
 enum class LogLevel : uint8_t
 {
     Alert    = 0,
@@ -21,6 +42,15 @@ enum class LogLevel : uint8_t
     None     = 8
 };
 
+/**
+ * @brief Converts a LogLevel value to its string representation.
+ *
+ * This function converts the provided LogLevel into a string which includes ANSI
+ * color codes to visually differentiate log levels when output in terminal.
+ *
+ * @param level The LogLevel to be converted.
+ * @return A string representing the log level, with ANSI color codes for formatting.
+ */
 std::string logLevelToString(LogLevel level)
 {
     switch (level)
@@ -38,7 +68,7 @@ std::string logLevelToString(LogLevel level)
         // Bright yellow
         return "\033[1;93mWARNING\u001b[0m\u001b[0m";
     case LogLevel::Notice:
-        // Bright cyan (you can adjust if preferred)
+        // Bright cyan
         return "\033[1;96mNOTICE\u001b[0m\u001b[0m";
     case LogLevel::Info:
         // Bright green
@@ -56,6 +86,13 @@ std::string logLevelToString(LogLevel level)
     }
 }
 
+/**
+ * @struct TimeStamp
+ * @brief Represents a timestamp with detailed date and time components.
+ *
+ * The TimeStamp structure contains fields for microseconds, seconds, minutes, hours,
+ * day, month, and year. It is used to provide precise time information for log entries.
+ */
 struct TimeStamp
 {
     uint64_t microseconds;
@@ -67,6 +104,13 @@ struct TimeStamp
     uint8_t  year;
 };
 
+/**
+ * @enum TokenType
+ * @brief Enumerates the types of tokens used for log message formatting.
+ *
+ * The TokenType enum class identifies different parts of the format string,
+ * distinguishing between literal text and placeholders for dynamic content.
+ */
 enum class TokenType
 {
     Literal,
@@ -82,6 +126,14 @@ enum class TokenType
     Text
 };
 
+/**
+ * @struct Token
+ * @brief Represents a token extracted from a log format string.
+ *
+ * The Token structure encapsulates a part of the log format string. It indicates
+ * whether the token is literal text or a placeholder (e.g., year, month) and stores
+ * additional formatting information such as width.
+ */
 struct Token
 {
     TokenType   type;
@@ -89,7 +141,22 @@ struct Token
     std::string literal;
 };
 
-using PrintFunction     = std::function<void(const std::string&)>;
+/**
+ * @typedef PrintFunction
+ * @brief A function type for printing log messages.
+ *
+ * This function type defines the signature for functions used to output formatted log messages.
+ * It takes the final log message as a string and the associated log level.
+ */
+using PrintFunction = std::function<void(const std::string&, LogLevel)>;
+
+/**
+ * @typedef TimeStampFunction
+ * @brief A function type for retrieving the current timestamp.
+ *
+ * This function type defines the signature for functions that return a TimeStamp
+ * structure containing the current date and time.
+ */
 using TimeStampFunction = std::function<TimeStamp()>;
 
 }  // namespace EmbedLog
