@@ -1,7 +1,4 @@
-/**
- * @file EmbedLogError.hpp
- * @brief Defines the logging levels, timestamp, token types, and function types for the EmbedLog library.
- *
+/*
  * Copyright (c) 2025, Joe Inman
  *
  * Licensed under the MIT License.
@@ -13,11 +10,10 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 #include <functional>
 #include <string>
-#include <array>
 
 namespace EmbedLog
 {
@@ -29,7 +25,7 @@ namespace EmbedLog
  * The LogLevel enum class defines several levels of logging to classify log messages
  * by their severity.
  */
-enum class LogLevel : uint8_t
+enum class LogLevel : std::uint8_t
 {
     Alert    = 0,
     Critical = 1,
@@ -42,16 +38,7 @@ enum class LogLevel : uint8_t
     None     = 8
 };
 
-/**
- * @brief Converts a LogLevel value to its string representation.
- *
- * This function converts the provided LogLevel into a string which includes ANSI
- * color codes to visually differentiate log levels when output in terminal.
- *
- * @param level The LogLevel to be converted.
- * @return A string representing the log level, with ANSI color codes for formatting.
- */
-static std::string logLevelToString(LogLevel level)
+[[nodiscard]] inline std::string log_level_to_string(LogLevel level)
 {
     switch (level)
     {
@@ -95,13 +82,13 @@ static std::string logLevelToString(LogLevel level)
  */
 struct TimeStamp
 {
-    uint64_t microseconds;
-    uint8_t  seconds;
-    uint8_t  minutes;
-    uint8_t  hours;
-    uint8_t  day;
-    uint8_t  month;
-    uint16_t year;
+    std::uint64_t microseconds{0U};
+    std::uint8_t  seconds{0U};
+    std::uint8_t  minutes{0U};
+    std::uint8_t  hours{0U};
+    std::uint8_t  day{0U};
+    std::uint8_t  month{0U};
+    std::uint16_t year{0U};
 };
 
 /**
@@ -111,7 +98,7 @@ struct TimeStamp
  * The TokenType enum class identifies different parts of the format string,
  * distinguishing between literal text and placeholders for dynamic content.
  */
-enum class TokenType
+enum class TokenType : std::uint8_t
 {
     Literal,
     Year,
@@ -136,9 +123,9 @@ enum class TokenType
  */
 struct Token
 {
-    TokenType   type;
-    int         width;
-    std::string literal;
+    TokenType    type{TokenType::Literal};
+    std::uint8_t width{0U};
+    std::string  literal{};
 };
 
 /**

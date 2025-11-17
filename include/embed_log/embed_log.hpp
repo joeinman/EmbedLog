@@ -1,7 +1,4 @@
-/**
- * @file EmbedLogError.hpp
- * @brief Defines the EmbedLog class for logging operations.
- *
+/*
  * Copyright (c) 2025, Joe Inman
  *
  * Licensed under the MIT License.
@@ -13,25 +10,24 @@
 
 #pragma once
 
-#include <stdint.h>
-
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <format>
 #include <functional>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 
-#include "Error.hpp"
-#include "Types.hpp"
+#include "embed_log/error.hpp"
+#include "embed_log/types.hpp"
 
 namespace EmbedLog
 {
 
-/**
- * @brief Default format string for log messages.
- *
- * This format uses custom tokens (prefixed with '%') to insert various
- * information such as date, time, log level, logger name, and the message text.
- */
-constexpr const char* defaultFormat = "[%YYYY:%MM:%DD:%hh:%mm:%ss.%uuuuuu] [%N] [%L] - %T";
+inline constexpr std::string_view default_format = "[%YYYY:%MM:%DD:%hh:%mm:%ss.%uuuuuu] [%N] [%L] - %T";
 
 /**
  * @class EmbedLog
@@ -50,18 +46,21 @@ public:
      * @param print_function A function used to print the formatted log message.
      * @param timestamp_function A function that returns the current timestamp.
      * @param name The identifier name for the logger.
-     * @param format The format string for the log output. Defaults to defaultFormat.
+     * @param format The format string for the log output. Defaults to default_format.
      *
      * The constructor tokenizes the provided format string for later use in formatting.
      */
     EmbedLog(const PrintFunction&     print_function,
              const TimeStampFunction& timestamp_function,
-             const std::string&       name,
-             const std::string&       format = defaultFormat) :
-        print_function_(print_function), timestamp_function_(timestamp_function), name_(name), format_(format)
-    {
-        tokens_ = tokenizeFormat(format_);
-    }
+             std::string              name,
+             std::string              format = std::string{default_format}) :
+        name_(std::move(name)),
+        format_(std::move(format)),
+        print_function_(print_function),
+        timestamp_function_(timestamp_function),
+        tokens_(tokenize_format(format_)),
+        log_level_(LogLevel::None)
+    {}
 
     /**
      * @brief Logs a formatted message.
@@ -80,24 +79,25 @@ public:
      *        resulting string is too long, an appropriate error is returned.
      */
     template <typename... Args>
-    EmbedLogError log(LogLevel level, const std::string& fmt, Args&&... args) const noexcept
+    [[nodiscard]] EmbedLogError log(LogLevel level, const std::string& fmt, Args&&... args) const noexcept
     {
         if (level > log_level_)
+        {
             return EmbedLogError{EmbedLogErrorType::LogLevelError, "Log level is too low."};
+        }
+        constexpr std::size_t max_message_length = 255U;
 
-        char buffer[256];  // NOSONAR
-        snprintf(buffer, sizeof(buffer), fmt.c_str(), std::forward<Args>(args)...);
-        std::string message(buffer);
-        if (message.size() > 255)
+        const std::string message = std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...));
+        if (message.size() > max_message_length)
         {
             return EmbedLogError{EmbedLogErrorType::OutputLengthError, "Output string is too long."};
         }
 
-        std::string levelStr = logLevelToString(level);
-        TimeStamp   ts       = timestamp_function_();
+        const std::string level_string = log_level_to_string(level);
+        const TimeStamp   timestamp    = timestamp_function_();
 
-        std::string output = formatOutput(message, ts, levelStr);
-        if (output.size() > 255)
+        const std::string output = format_output(message, timestamp, level_string);
+        if (output.size() > max_message_length)
         {
             return EmbedLogError{EmbedLogErrorType::OutputLengthError, "Output string is too long."};
         }
@@ -113,15 +113,15 @@ public:
      *
      * @param level The minimum log level required for messages to be printed.
      */
-    void setLogLevel(const LogLevel& level) noexcept { log_level_ = level; }
+    void set_log_level(const LogLevel& level) noexcept { log_level_ = level; }
 
 private:
     PrintFunction      print_function_;
     TimeStampFunction  timestamp_function_;
     std::string        name_;
     std::string        format_;
-    LogLevel           log_level_ = LogLevel::None;
     std::vector<Token> tokens_;
+    LogLevel           log_level_ = LogLevel::None;
 
     /**
      * @brief Tokenizes the log format string.
@@ -132,36 +132,35 @@ private:
      * @param format The format string to tokenize.
      * @return A vector of Token objects representing the parsed components.
      */
-    static std::vector<Token> tokenizeFormat(const std::string& format)
+    [[nodiscard]] static std::vector<Token> tokenize_format(const std::string& format)
     {
         std::vector<Token> tokens;
-        size_t             i = 0;
-        while (i < format.size())
+        std::size_t        index = 0U;
+        while (index < format.size())
         {
-            if (format[i] == '%')
+            if (format[index] == '%')
             {
-                if (i + 1 < format.size() && format[i + 1] == '%')
+                if ((index + 1U) < format.size() && format[index + 1U] == '%')
                 {
-                    tokens.push_back(Token{TokenType::Literal, 0, "%"});
-                    i += 2;
+                    tokens.push_back(Token{TokenType::Literal, 0U, "%"});
+                    index += 2U;
                     continue;
                 }
 
-                size_t j = i + 1;
-                if (j < format.size())
+                const std::size_t token_start = index + 1U;
+                if (token_start < format.size())
                 {
-                    char   tokenChar = format[j];
-                    size_t k         = j;
-                    while (k < format.size() && format[k] == tokenChar)
+                    const char  token_char = format[token_start];
+                    std::size_t token_end  = token_start;
+                    while (token_end < format.size() && format[token_end] == token_char)
                     {
-                        k++;
+                        ++token_end;
                     }
-                    int count = static_cast<int>(k - j);
+                    const auto width = static_cast<std::uint8_t>(token_end - token_start);
 
-                    Token token;
-                    token.width   = count;
-                    token.literal = "";
-                    switch (tokenChar)
+                    Token token{};
+                    token.width = width;
+                    switch (token_char)
                     {
                     case 'Y':
                         token.type = TokenType::Year;
@@ -195,21 +194,21 @@ private:
                         break;
                     default:
                         token.type    = TokenType::Literal;
-                        token.literal = format.substr(i, k - i);
+                        token.literal = format.substr(index, token_end - index);
                         break;
                     }
                     tokens.push_back(token);
-                    i = k;
+                    index = token_end;
                     continue;
                 }
             }
 
-            size_t start = i;
-            while (i < format.size() && format[i] != '%')
+            const std::size_t literal_start = index;
+            while (index < format.size() && format[index] != '%')
             {
-                i++;
+                ++index;
             }
-            tokens.push_back(Token{TokenType::Literal, 0, format.substr(start, i - start)});
+            tokens.push_back(Token{TokenType::Literal, 0U, format.substr(literal_start, index - literal_start)});
         }
         return tokens;
     }
@@ -222,22 +221,27 @@ private:
      * the logger name, the log level, and the actual message text.
      *
      * @param message The log message text.
-     * @param ts The current timestamp containing detailed date and time information.
-     * @param levelStr The string representation of the current log level.
+     * @param timestamp The current timestamp containing detailed date and time information.
+     * @param level_string The string representation of the current log level.
      * @return A formatted string ready to be printed.
      */
-    std::string formatOutput(const std::string& message, const TimeStamp& ts, const std::string_view& levelStr) const
+    [[nodiscard]] std::string format_output(const std::string& message,
+                                            const TimeStamp&   timestamp,
+                                            std::string_view   level_string) const
     {
-        auto formatNumber = [](int number, int width) {
+        const auto format_number = [](int number, std::uint8_t width) -> std::string {
             std::string result = std::to_string(number);
-            if (result.size() < static_cast<size_t>(width))
+            const auto  width_size =
+                static_cast<std::size_t>(width);  // ensures consistent comparison without implicit conversions
+            if (result.size() < width_size)
             {
-                result.insert(0, width - result.size(), '0');
+                result.insert(0, width_size - result.size(), '0');
             }
             return result;
         };
 
         std::string output;
+        output.reserve(message.size() + format_.size());
         for (const auto& token : tokens_)
         {
             switch (token.type)
@@ -248,49 +252,49 @@ private:
             case TokenType::Year:
                 if (token.width == 2)
                 {
-                    output += "\033[1;97m" + formatNumber(ts.year % 100, token.width) + "\033[0m";
+                    output += "\033[1;97m" + format_number(timestamp.year % 100, token.width) + "\033[0m";
                 }
                 else
                 {
-                    output += "\033[1;97m" + formatNumber(ts.year, token.width) + "\033[0m";
+                    output += "\033[1;97m" + format_number(timestamp.year, token.width) + "\033[0m";
                 }
                 break;
             case TokenType::Month:
-                output += "\033[1;97m" + formatNumber(ts.month, token.width) + "\033[0m";
+                output += "\033[1;97m" + format_number(timestamp.month, token.width) + "\033[0m";
                 break;
             case TokenType::Day:
-                output += "\033[1;97m" + formatNumber(ts.day, token.width) + "\033[0m";
+                output += "\033[1;97m" + format_number(timestamp.day, token.width) + "\033[0m";
                 break;
             case TokenType::Hour:
-                output += "\033[1;97m" + formatNumber(ts.hours, token.width) + "\033[0m";
+                output += "\033[1;97m" + format_number(timestamp.hours, token.width) + "\033[0m";
                 break;
             case TokenType::Minute:
-                output += "\033[1;97m" + formatNumber(ts.minutes, token.width) + "\033[0m";
+                output += "\033[1;97m" + format_number(timestamp.minutes, token.width) + "\033[0m";
                 break;
             case TokenType::Second:
-                output += "\033[1;97m" + formatNumber(ts.seconds, token.width) + "\033[0m";
+                output += "\033[1;97m" + format_number(timestamp.seconds, token.width) + "\033[0m";
                 break;
             case TokenType::Micro:
             {
-                const int totalDigits    = 6;
-                uint64_t  effectiveMicro = ts.microseconds;
-                if (token.width < totalDigits)
+                constexpr std::uint8_t microsecond_digits = 6U;
+                std::uint64_t          effective_micro    = timestamp.microseconds;
+                if (token.width < microsecond_digits)
                 {
-                    int divisor = 1;
-                    for (int l = 0; l < totalDigits - token.width; l++)
+                    std::uint32_t divisor = 1U;
+                    for (std::uint8_t digit = 0U; digit < (microsecond_digits - token.width); ++digit)
                     {
-                        divisor *= 10;
+                        divisor *= 10U;
                     }
-                    effectiveMicro /= divisor;
+                    effective_micro /= divisor;
                 }
-                output += "\033[1;97m" + formatNumber(static_cast<int>(effectiveMicro), token.width) + "\033[0m";
+                output += "\033[1;97m" + format_number(static_cast<int>(effective_micro), token.width) + "\033[0m";
                 break;
             }
             case TokenType::Name:
                 output += "\033[1;97m" + name_ + "\033[0m";
                 break;
             case TokenType::Level:
-                output += std::string(levelStr);
+                output += std::string(level_string);
                 break;
             case TokenType::Text:
                 output += "\033[0m" + message;
